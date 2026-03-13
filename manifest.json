@@ -1,0 +1,22 @@
+{
+  "name": "Driver Tracker",
+  "short_name": "Driver",
+  "description": "Pencatat pendapatan driver online",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#0A0F1E",
+  "theme_color": "#0A0F1E",
+  "orientation": "portrait",
+  "icons": [
+    {
+      "src": "https://via.placeholder.com/192x192/00B14F/ffffff?text=🚗",
+      "sizes": "192x192",
+      "type": "image/png"
+    },
+    {
+      "src": "https://via.placeholder.com/512x512/00B14F/ffffff?text=🚗",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
