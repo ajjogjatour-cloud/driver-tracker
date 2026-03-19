@@ -1,1 +1,441 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0" />
+  <title>Driver Tracker 🚗</title>
+  <meta name="theme-color" content="#F0F2F5" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <meta name="apple-mobile-web-app-title" content="Driver Tracker" />
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { font-family: 'Segoe UI', sans-serif; background: #F0F2F5; color: #1a1a2e; min-height: 100vh; display: flex; justify-content: center; }
+    #app { width: 100%; max-width: 430px; min-height: 100vh; position: relative; padding-bottom: 80px; }
 
+    .header { background: linear-gradient(135deg, #ffffff, #f8f9fa); padding: 20px 20px 16px; border-bottom: 1px solid #DEE2E6; }
+    .header-label { font-size: 11px; color: #9AA3B0; letter-spacing: 2px; text-transform: uppercase; margin-bottom: 4px; }
+    .header-title { font-size: 22px; font-weight: 700; color: #1a1a2e; }
+    .header-date { font-size: 12px; color: #9AA3B0; margin-top: 4px; }
+
+    .content { padding: 16px; }
+
+    .card-green { background: linear-gradient(135deg, #1DB954, #00B14F); border-radius: 16px; padding: 18px 20px; margin-bottom: 16px; box-shadow: 0 4px 20px rgba(29,185,84,0.3); }
+    .card-green .label { font-size: 12px; color: rgba(255,255,255,0.8); margin-bottom: 4px; }
+    .card-green .amount { font-size: 32px; font-weight: 800; color: #fff; }
+    .today-stats { display: flex; gap: 16px; margin-top: 10px; }
+    .today-stats div { }
+    .today-stats .stat-label { font-size: 11px; color: rgba(255,255,255,0.7); }
+    .today-stats .stat-val { font-size: 16px; font-weight: 700; color: #fff; }
+
+    .btn-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 20px; }
+    .btn-income { background: linear-gradient(135deg, #00B14F, #1DB954); border: none; border-radius: 14px; padding: 16px 12px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(0,177,79,0.4); width: 100%; }
+    .btn-expense { background: linear-gradient(135deg, #FF4757, #E84393); border: none; border-radius: 14px; padding: 16px 12px; color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; box-shadow: 0 4px 12px rgba(255,71,87,0.4); width: 100%; }
+
+    .box { background: #FFFFFF; border-radius: 14px; padding: 16px; margin-bottom: 16px; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+    .box-title { font-size: 13px; color: #9AA3B0; margin-bottom: 12px; font-weight: 600; }
+
+    .platform-row { display: flex; align-items: center; gap: 10px; margin-bottom: 8px; }
+    .platform-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 16px; flex-shrink: 0; }
+    .platform-info { flex: 1; }
+    .platform-name { font-size: 13px; font-weight: 600; color: #1a1a2e; }
+    .platform-count { font-size: 11px; color: #9AA3B0; }
+    .platform-amount { font-size: 14px; font-weight: 700; }
+
+    .record-row { display: flex; align-items: center; gap: 10px; padding: 8px 0; border-bottom: 1px solid #F0F2F5; }
+    .record-icon { width: 36px; height: 36px; border-radius: 10px; display: flex; align-items: center; justify-content: center; font-size: 18px; flex-shrink: 0; }
+    .record-info { flex: 1; }
+    .record-name { font-size: 13px; font-weight: 600; color: #1a1a2e; }
+    .record-date { font-size: 11px; color: #9AA3B0; }
+    .record-amount { font-size: 14px; font-weight: 700; }
+    .record-del { background: none; border: none; color: #CCC; cursor: pointer; font-size: 14px; padding: 4px; }
+
+    .empty { color: #9AA3B0; font-size: 13px; text-align: center; padding: 20px 0; }
+
+    /* Bottom Nav */
+    .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 430px; background: #FFFFFF; border-top: 1px solid #DEE2E6; display: flex; z-index: 100; box-shadow: 0 -2px 10px rgba(0,0,0,0.08); }
+    .nav-btn { flex: 1; padding: 12px 0 10px; background: none; border: none; cursor: pointer; display: flex; flex-direction: column; align-items: center; gap: 2px; }
+    .nav-icon { font-size: 22px; }
+    .nav-label { font-size: 10px; font-weight: 600; }
+
+    /* Period Selector */
+    .period-selector { display: flex; gap: 8px; margin-bottom: 16px; }
+    .period-btn { flex: 1; padding: 8px 4px; border-radius: 10px; border: none; font-weight: 600; font-size: 11px; cursor: pointer; }
+
+    /* Summary Cards */
+    .summary-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+    .summary-card { background: #FFFFFF; border-radius: 12px; padding: 12px 10px; text-align: center; box-shadow: 0 1px 6px rgba(0,0,0,0.07); }
+    .summary-icon { font-size: 20px; }
+    .summary-label { font-size: 9px; color: #6B7A99; margin-top: 4px; }
+    .summary-val { font-size: 12px; font-weight: 700; margin-top: 2px; }
+
+    /* Bar Chart */
+    .bar-wrap { margin-bottom: 14px; }
+    .bar-header { display: flex; justify-content: space-between; margin-bottom: 4px; }
+    .bar-name { font-size: 13px; font-weight: 600; }
+    .bar-amount { font-size: 13px; font-weight: 700; }
+    .bar-count { color: #6B7A99; font-weight: 400; font-size: 11px; }
+    .bar-track { background: #E9ECEF; border-radius: 999px; height: 8px; overflow: hidden; }
+    .bar-fill { height: 100%; border-radius: 999px; transition: width 0.5s; }
+
+    .expense-row { display: flex; justify-content: space-between; padding: 6px 0; border-bottom: 1px solid #F0F2F5; font-size: 13px; color: #1a1a2e; }
+
+    /* Modal */
+    .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 200; display: flex; align-items: flex-end; justify-content: center; }
+    .modal { background: #FFFFFF; border-radius: 20px 20px 0 0; width: 100%; max-width: 430px; padding: 24px; }
+    .modal-title { font-size: 18px; font-weight: 700; margin-bottom: 20px; }
+    .modal-label { font-size: 12px; color: #9AA3B0; margin-bottom: 8px; }
+    .platform-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .cat-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 8px; margin-bottom: 16px; }
+    .pick-btn { padding: 10px 8px; border-radius: 10px; border: 2px solid #DEE2E6; background: #F8F9FA; color: #1a1a2e; font-size: 13px; font-weight: 600; cursor: pointer; text-align: left; }
+    .pick-btn.active-cat { border-color: #FF4757; background: rgba(255,71,87,0.08); }
+    .modal-input { width: 100%; background: #F8F9FA; border: 2px solid #DEE2E6; border-radius: 10px; padding: 12px 14px; color: #1a1a2e; font-size: 16px; font-weight: 700; outline: none; margin-bottom: 16px; }
+    .modal-input-sm { font-size: 14px; font-weight: 400; }
+    .modal-btns { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .btn-cancel { padding: 14px; border-radius: 12px; border: 2px solid #DEE2E6; background: #F8F9FA; color: #9AA3B0; font-size: 15px; font-weight: 700; cursor: pointer; }
+    .btn-save-income { padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, #00B14F, #1DB954); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(0,177,79,0.4); }
+    .btn-save-expense { padding: 14px; border-radius: 12px; border: none; background: linear-gradient(135deg, #FF4757, #E84393); color: #fff; font-size: 15px; font-weight: 700; cursor: pointer; box-shadow: 0 4px 12px rgba(255,71,87,0.4); }
+
+    /* Toast */
+    .toast { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); background: #1DB954; color: #fff; padding: 10px 20px; border-radius: 20px; font-size: 14px; font-weight: 600; z-index: 999; white-space: nowrap; box-shadow: 0 4px 20px rgba(0,0,0,0.4); pointer-events: none; }
+
+    .hidden { display: none !important; }
+  </style>
+</head>
+<body>
+<div id="app">
+  <div class="header">
+    <div class="header-label">Driver Dashboard</div>
+    <div class="header-title">Pencatat Pendapatan 🚗</div>
+    <div class="header-date" id="headerDate"></div>
+  </div>
+
+  <!-- HOME TAB -->
+  <div id="tabHome" class="content">
+    <div class="card-green">
+      <div class="label">💰 Pendapatan Hari Ini</div>
+      <div class="amount" id="todayIncome">Rp 0</div>
+      <div class="today-stats">
+        <div><div class="stat-label">Order</div><div class="stat-val" id="todayCount">0x</div></div>
+        <div><div class="stat-label">Pengeluaran</div><div class="stat-val" id="todayExpense">Rp 0</div></div>
+        <div><div class="stat-label">Bersih</div><div class="stat-val" id="todayNet">Rp 0</div></div>
+      </div>
+    </div>
+
+    <div class="btn-grid">
+      <button class="btn-income" onclick="openModal('income')"><span>➕</span> Catat Order</button>
+      <button class="btn-expense" onclick="openModal('expense')"><span>💸</span> Catat Keluar</button>
+    </div>
+
+    <div class="box" id="todayPlatformBox">
+      <div class="box-title">Platform Hari Ini</div>
+      <div id="todayPlatformList"></div>
+    </div>
+
+    <div class="box">
+      <div class="box-title">Riwayat Terbaru</div>
+      <div id="recentList"></div>
+    </div>
+  </div>
+
+  <!-- REPORT TAB -->
+  <div id="tabReport" class="content hidden">
+    <div class="period-selector">
+      <button class="period-btn" id="pToday" onclick="setPeriod('today')">Hari Ini</button>
+      <button class="period-btn" id="pWeek" onclick="setPeriod('week')">Minggu Ini</button>
+      <button class="period-btn" id="pMonth" onclick="setPeriod('month')">Bulan Ini</button>
+      <button class="period-btn" id="pAll" onclick="setPeriod('all')">Semua</button>
+    </div>
+
+    <div class="summary-grid">
+      <div class="summary-card"><div class="summary-icon">💰</div><div class="summary-label">Pendapatan</div><div class="summary-val" id="rptIncome" style="color:#00B14F">Rp 0</div></div>
+      <div class="summary-card"><div class="summary-icon">💸</div><div class="summary-label">Pengeluaran</div><div class="summary-val" id="rptExpense" style="color:#FF4757">Rp 0</div></div>
+      <div class="summary-card"><div class="summary-icon">✨</div><div class="summary-label">Bersih</div><div class="summary-val" id="rptNet" style="color:#FFD700">Rp 0</div></div>
+    </div>
+
+    <div class="box">
+      <div class="box-title">📊 Perbandingan Platform</div>
+      <div id="platformChart"></div>
+    </div>
+
+    <div class="box" id="expenseBox">
+      <div class="box-title">💸 Rincian Pengeluaran</div>
+      <div id="expenseChart"></div>
+    </div>
+  </div>
+
+  <!-- Bottom Nav -->
+  <div class="bottom-nav">
+    <button class="nav-btn" id="navHome" onclick="setTab('home')">
+      <span class="nav-icon">🏠</span>
+      <span class="nav-label" style="color:#1DB954">Beranda</span>
+    </button>
+    <button class="nav-btn" id="navReport" onclick="setTab('report')">
+      <span class="nav-icon">📊</span>
+      <span class="nav-label" style="color:#6B7A99">Laporan</span>
+    </button>
+  </div>
+</div>
+
+<!-- Modal -->
+<div class="modal-overlay hidden" id="modalOverlay" onclick="closeModal()">
+  <div class="modal" onclick="event.stopPropagation()">
+    <div class="modal-title" id="modalTitle"></div>
+
+    <!-- Platform Picker -->
+    <div id="platformPicker">
+      <div class="modal-label">Platform</div>
+      <div class="platform-grid" id="platformBtns"></div>
+    </div>
+
+    <!-- Category Picker -->
+    <div id="catPicker" class="hidden">
+      <div class="modal-label">Kategori</div>
+      <div class="cat-grid" id="catBtns"></div>
+    </div>
+
+    <div class="modal-label">Jumlah (Rp)</div>
+    <input type="number" class="modal-input" id="inputAmount" placeholder="Contoh: 35000" />
+
+    <div class="modal-label">Catatan (opsional)</div>
+    <input type="text" class="modal-input modal-input-sm" id="inputNote" placeholder="Misal: Bandara, Jarak jauh..." />
+
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal()">Batal</button>
+      <button id="btnSave" onclick="saveRecord()">Simpan ✓</button>
+    </div>
+  </div>
+</div>
+
+<!-- Toast -->
+<div class="toast hidden" id="toast"></div>
+
+<script>
+const PLATFORMS = [
+  { id: "grab", name: "GrabCar", color: "#00B14F", emoji: "🟢" },
+  { id: "gojek", name: "GoCar", color: "#00AAE4", emoji: "🔵" },
+  { id: "maxim", name: "Maxim", color: "#FF6B00", emoji: "🟠" },
+  { id: "indriver", name: "InDriver", color: "#1DB954", emoji: "🟩" },
+  { id: "wisata", name: "Wisata Private", color: "#FFD700", emoji: "⭐" },
+];
+const EXPENSE_CATS = ["Bensin","Makan","Parkir","Cuci Mobil","Servis","Lainnya"];
+
+let records = JSON.parse(localStorage.getItem("driver_records") || "[]");
+let currentTab = "home";
+let currentPeriod = "month";
+let modalType = null;
+let selectedPlatform = null;
+let selectedCat = null;
+
+const fmt = n => new Intl.NumberFormat("id-ID",{style:"currency",currency:"IDR",maximumFractionDigits:0}).format(n||0);
+const today = () => new Date().toISOString().split("T")[0];
+const getWeekStart = d => { const dt=new Date(d); const day=dt.getDay(); const diff=dt.getDate()-day+(day===0?-6:1); return new Date(dt.setDate(diff)).toISOString().split("T")[0]; };
+const getMonth = d => d.slice(0,7);
+
+function saveData() { localStorage.setItem("driver_records", JSON.stringify(records)); }
+
+function filterByPeriod(recs, period) {
+  const t = today();
+  if (period==="today") return recs.filter(r=>r.date===t);
+  if (period==="week") return recs.filter(r=>getWeekStart(r.date)===getWeekStart(t));
+  if (period==="month") return recs.filter(r=>getMonth(r.date)===getMonth(t));
+  return recs;
+}
+
+function totalIncome(recs) { return recs.filter(r=>r.type==="income").reduce((s,r)=>s+r.amount,0); }
+function totalExpense(recs) { return recs.filter(r=>r.type==="expense").reduce((s,r)=>s+r.amount,0); }
+
+function render() {
+  // Header date
+  document.getElementById("headerDate").textContent = new Date().toLocaleDateString("id-ID",{weekday:"long",year:"numeric",month:"long",day:"numeric"});
+
+  const todayRecs = filterByPeriod(records, "today");
+  const inc = totalIncome(todayRecs);
+  const exp = totalExpense(todayRecs);
+  document.getElementById("todayIncome").textContent = fmt(inc);
+  document.getElementById("todayCount").textContent = todayRecs.filter(r=>r.type==="income").length + "x";
+  document.getElementById("todayExpense").textContent = fmt(exp);
+  document.getElementById("todayNet").textContent = fmt(inc - exp);
+
+  // Today platform
+  const todayPlatList = document.getElementById("todayPlatformList");
+  const todayPlatBox = document.getElementById("todayPlatformBox");
+  const activePlats = PLATFORMS.filter(p => todayRecs.some(r=>r.type==="income"&&r.platform===p.id));
+  if (activePlats.length === 0) { todayPlatBox.classList.add("hidden"); }
+  else {
+    todayPlatBox.classList.remove("hidden");
+    todayPlatList.innerHTML = activePlats.map(p => {
+      const amt = todayRecs.filter(r=>r.type==="income"&&r.platform===p.id).reduce((s,r)=>s+r.amount,0);
+      const cnt = todayRecs.filter(r=>r.type==="income"&&r.platform===p.id).length;
+      return `<div class="platform-row">
+        <div class="platform-icon" style="background:${p.color}22">${p.emoji}</div>
+        <div class="platform-info"><div class="platform-name">${p.name}</div><div class="platform-count">${cnt} order</div></div>
+        <div class="platform-amount" style="color:${p.color}">${fmt(amt)}</div>
+      </div>`;
+    }).join("");
+  }
+
+  // Recent records
+  const recentEl = document.getElementById("recentList");
+  const recent = records.slice(0,30);
+  if (recent.length === 0) { recentEl.innerHTML = '<div class="empty">Belum ada catatan. Mulai catat order pertamamu! 🚗</div>'; }
+  else {
+    recentEl.innerHTML = recent.map(r => {
+      const p = r.type==="income" ? PLATFORMS.find(p=>p.id===r.platform) : null;
+      const color = r.type==="income" ? (p?.color||"#00B14F") : "#FF4757";
+      const emoji = r.type==="income" ? (p?.emoji||"💰") : "💸";
+      const name = r.type==="income" ? (p?.name||r.platform) : r.category;
+      const sign = r.type==="income" ? "+" : "-";
+      return `<div class="record-row">
+        <div class="record-icon" style="background:${color}22">${emoji}</div>
+        <div class="record-info">
+          <div class="record-name">${name}</div>
+          <div class="record-date">${r.date}${r.note?" • "+r.note:""}</div>
+        </div>
+        <div style="display:flex;align-items:center;gap:6px">
+          <div class="record-amount" style="color:${color}">${sign}${fmt(r.amount)}</div>
+          <button class="record-del" onclick="deleteRecord(${r.id})">🗑</button>
+        </div>
+      </div>`;
+    }).join("");
+  }
+
+  // Report tab
+  const periodRecs = filterByPeriod(records, currentPeriod);
+  document.getElementById("rptIncome").textContent = fmt(totalIncome(periodRecs));
+  document.getElementById("rptExpense").textContent = fmt(totalExpense(periodRecs));
+  document.getElementById("rptNet").textContent = fmt(totalIncome(periodRecs)-totalExpense(periodRecs));
+
+  // Platform chart
+  const pStats = PLATFORMS.map(p=>({...p, total:periodRecs.filter(r=>r.type==="income"&&r.platform===p.id).reduce((s,r)=>s+r.amount,0), count:periodRecs.filter(r=>r.type==="income"&&r.platform===p.id).length})).filter(p=>p.total>0).sort((a,b)=>b.total-a.total);
+  const maxP = Math.max(...pStats.map(p=>p.total),1);
+  const chartEl = document.getElementById("platformChart");
+  if (pStats.length===0) { chartEl.innerHTML='<div class="empty">Belum ada data</div>'; }
+  else {
+    chartEl.innerHTML = pStats.map(p=>`<div class="bar-wrap">
+      <div class="bar-header"><span class="bar-name">${p.emoji} ${p.name}</span><span class="bar-amount" style="color:${p.color}">${fmt(p.total)} <span class="bar-count">(${p.count}x)</span></span></div>
+      <div class="bar-track"><div class="bar-fill" style="width:${(p.total/maxP)*100}%;background:${p.color}"></div></div>
+    </div>`).join("");
+  }
+
+  // Expense chart
+  const eStats = EXPENSE_CATS.map(cat=>({cat,total:periodRecs.filter(r=>r.type==="expense"&&r.category===cat).reduce((s,r)=>s+r.amount,0)})).filter(e=>e.total>0).sort((a,b)=>b.total-a.total);
+  const expBox = document.getElementById("expenseBox");
+  if (eStats.length===0) { expBox.classList.add("hidden"); }
+  else {
+    expBox.classList.remove("hidden");
+    document.getElementById("expenseChart").innerHTML = eStats.map(e=>`<div class="expense-row"><span>${e.cat}</span><span style="font-weight:700;color:#FF4757">${fmt(e.total)}</span></div>`).join("");
+  }
+
+  // Period buttons style
+  ["today","week","month","all"].forEach(p=>{
+    const btn = document.getElementById("p"+p.charAt(0).toUpperCase()+p.slice(1));
+    if(btn){ btn.style.background = currentPeriod===p?"#1DB954":"#E9ECEF"; btn.style.color = currentPeriod===p?"#fff":"#6B7A99"; }
+  });
+}
+
+function setTab(tab) {
+  currentTab = tab;
+  document.getElementById("tabHome").classList.toggle("hidden", tab!=="home");
+  document.getElementById("tabReport").classList.toggle("hidden", tab!=="report");
+  document.querySelector("#navHome .nav-label").style.color = tab==="home"?"#1DB954":"#6B7A99";
+  document.querySelector("#navReport .nav-label").style.color = tab==="report"?"#1DB954":"#6B7A99";
+  render();
+}
+
+function setPeriod(p) { currentPeriod=p; render(); }
+
+function openModal(type) {
+  modalType = type;
+  selectedPlatform = null;
+  selectedCat = null;
+  document.getElementById("inputAmount").value = "";
+  document.getElementById("inputNote").value = "";
+
+  const titleEl = document.getElementById("modalTitle");
+  if (type==="income") {
+    titleEl.textContent = "➕ Catat Order";
+    titleEl.style.color = "#00B14F";
+    document.getElementById("platformPicker").classList.remove("hidden");
+    document.getElementById("catPicker").classList.add("hidden");
+    document.getElementById("btnSave").className = "btn-save-income";
+    // Build platform buttons
+    document.getElementById("platformBtns").innerHTML = PLATFORMS.map(p=>`
+      <button class="pick-btn" id="plt_${p.id}" onclick="selectPlatform('${p.id}')" style="border-color:#DEE2E6;background:#F8F9FA">${p.emoji} ${p.name}</button>
+    `).join("");
+  } else {
+    titleEl.textContent = "💸 Catat Pengeluaran";
+    titleEl.style.color = "#FF4757";
+    document.getElementById("platformPicker").classList.add("hidden");
+    document.getElementById("catPicker").classList.remove("hidden");
+    document.getElementById("btnSave").className = "btn-save-expense";
+    document.getElementById("catBtns").innerHTML = EXPENSE_CATS.map(cat=>`
+      <button class="pick-btn" id="cat_${cat}" onclick="selectCat('${cat}')">${cat}</button>
+    `).join("");
+  }
+
+  document.getElementById("modalOverlay").classList.remove("hidden");
+}
+
+function closeModal() { document.getElementById("modalOverlay").classList.add("hidden"); }
+
+function selectPlatform(id) {
+  selectedPlatform = id;
+  PLATFORMS.forEach(p => {
+    const btn = document.getElementById("plt_"+p.id);
+    if (!btn) return;
+    btn.style.borderColor = p.id===id ? p.color : "#1e2a40";
+    btn.style.background = p.id===id ? p.color+"22" : "#F8F9FA";
+  });
+}
+
+function selectCat(cat) {
+  selectedCat = cat;
+  EXPENSE_CATS.forEach(c => {
+    const btn = document.getElementById("cat_"+c);
+    if (!btn) return;
+    btn.classList.toggle("active-cat", c===cat);
+  });
+}
+
+function saveRecord() {
+  const amount = parseInt(document.getElementById("inputAmount").value)||0;
+  const note = document.getElementById("inputNote").value;
+  if (modalType==="income" && !selectedPlatform) { showToast("⚠️ Pilih platform dulu!"); return; }
+  if (modalType==="expense" && !selectedCat) { showToast("⚠️ Pilih kategori dulu!"); return; }
+  if (!amount) { showToast("⚠️ Masukkan jumlah!"); return; }
+
+  const rec = { id: Date.now(), type: modalType, date: today(), amount, note };
+  if (modalType==="income") rec.platform = selectedPlatform;
+  else rec.category = selectedCat;
+
+  records.unshift(rec);
+  saveData();
+  closeModal();
+  render();
+  showToast(modalType==="income" ? "✅ Pendapatan tercatat!" : "✅ Pengeluaran tercatat!");
+}
+
+function deleteRecord(id) {
+  records = records.filter(r=>r.id!==id);
+  saveData();
+  render();
+  showToast("🗑️ Dihapus");
+}
+
+let toastTimer;
+function showToast(msg) {
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.classList.remove("hidden");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.add("hidden"), 2500);
+}
+
+// Init
+render();
+</script>
+</body>
+</html>
